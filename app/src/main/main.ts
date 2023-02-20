@@ -1,6 +1,3 @@
-import "core-js/stable";
-import "regenerator-runtime/runtime";
-
 import { app, BrowserWindow } from "electron";
 import * as path from "path";
 import * as url from "url";
@@ -21,9 +18,7 @@ const createWindow = async () => {
 
 	if (isDev) {
 		// Open DevTools, see https://github.com/electron/electron/issues/12438 for why we wait for dom-ready
-		win.webContents.once("dom-ready", () => {
-			win!.webContents.openDevTools();
-		});
+		win.webContents.once("dom-ready", async () => {});
 	}
 
 	remoteMain.enable(win.webContents);
@@ -58,8 +53,9 @@ app.on("activate", () => {
 	}
 });
 
-app.on("browser-window-created", (_, window) => {
+app.on("browser-window-created", async (_, window) => {
 	require("@electron/remote/main").enable(window.webContents);
+	window!.webContents.openDevTools();
 });
 
 const gotTheLock = app.requestSingleInstanceLock();

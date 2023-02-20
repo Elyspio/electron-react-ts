@@ -1,33 +1,31 @@
-import { configureStore } from "@reduxjs/toolkit";
-import { logger } from "redux-logger";
-import { getUriParam } from "../utils/url";
-import { reducer as updaterReducer } from "./module/updater/updater.reducer";
-import { reducer as screenShareReducer } from "./module/screen-share/screen-share.reducer";
-import { reducer as encoderReducer } from "./module/encoder/encoder.reducer";
-import { reducer as routerReducer } from "./module/router/router.reducer";
-import { reducer as vpnReducer } from "./module/vpn/vpn.reducer";
-import { reducer as configurationRouter } from "./module/configuration/configuration.reducer";
-import { mediaSlice } from "./module/media/media.reducer";
+import { configureStore, Middleware, PayloadAction } from "@reduxjs/toolkit";
+import { reducer as counterReducer } from "./module/counter/counter.reducer";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
+import { getCurrentWindow, ipcMain } from "@electron/remote";
+import { ipcRenderer } from "electron";
+
+const currentWindow = getCurrentWindow();
+
+type ElectronAction = PayloadAction<any> & { alreadyDispatched?: boolean; idWindow: number };
+
+const electronDispatcherMiddleware: Middleware = store => next => (action: ElectronAction) => {
+	console.log("redux-action", action);
+
+	if (!action.alreadyDispatched) {
+		const electronAction: ElectronAction = { ...action, idWindow: currentWindow.id };
+		ipcRenderer.send("redux-action", electronAction);
+	}
+
+	return next(action);
+};
 
 export const store = configureStore({
 	reducer: {
-		updater: updaterReducer,
-		encoder: encoderReducer,
-		routing: routerReducer,
-		config: configurationRouter,
-		screenShare: screenShareReducer,
-		vpn: vpnReducer,
-		media: mediaSlice.reducer,
+		counter: counterReducer,
 	},
+
 	devTools: true,
-	middleware: defaults =>
-		defaults({
-			serializableCheck: {
-				ignoredActions: ["media/setCurrentProcess"],
-			},
-		}).concat(logger),
-	preloadedState: getUriParam<any>("store", { json: true, remove: true }) ?? undefined,
+	middleware: defaults => defaults().concat(electronDispatcherMiddleware),
 });
 
 export type StoreState = ReturnType<typeof store.getState>;
@@ -38,3 +36,33 @@ export type AppDispatch = typeof store.dispatch;
 
 export const useAppDispatch = () => useDispatch<AppDispatch>();
 export const useAppSelector: TypedUseSelectorHook<StoreState> = useSelector;
+
+ipcMain.on("redux-action", (event, action: ElectronAction) => {
+	if (!action.alreadyDispatched && action.idWindow !== currentWindow.id) {
+		action.alreadyDispatched = true;
+		store.dispatch(action);
+	}
+
+	console.log("received redux action from ipc", action);
+});
+
+// main window
+if (currentWindow.id === 1) {
+	ipcMain.on("redux-init", async event => {
+		const state = store.getState();
+		console.log("redux-init", state);
+		event.returnValue = state;
+	});
+} else {
+	updateInitialState();
+}
+
+function updateInitialState() {
+	const state = ipcRenderer.sendSync("redux-init");
+	console.log("state resp", state);
+	const reducers = Object.keys(state) as (keyof StoreState)[];
+	for (const reducer of reducers) {
+		store.dispatch({ type: `${reducer}/replace`, payload: state[reducer] });
+	}
+}
+

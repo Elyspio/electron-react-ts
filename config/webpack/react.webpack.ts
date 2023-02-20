@@ -53,9 +53,6 @@ const config: Configuration = {
 		historyApiFallback: true,
 		compress: true,
 	},
-	stats: {
-		warningsFilter: x => x.message.includes("osx-temperature-sensor") || x.message.includes("encoding"),
-	},
 	output: {
 		path: path.resolve(rootPath, "app/dist/renderer"),
 		filename: "js/[name].js",

@@ -25,7 +25,7 @@ internal class Program
         var arguments = Parser.Default.ParseArguments<Options>(args).Value;
 
 
-        Console.WriteLine("Releasing Elytools");
+        Console.WriteLine("Releasing Electron React TS Template");
 
         Console.WriteLine($"appDir    {Internal.AppDir}");
         Console.WriteLine($"configDir {Internal.ConfigDir}");

@@ -10,7 +10,5 @@ export const windowOption: BrowserWindowConstructorOptions = {
 		contextIsolation: false,
 	},
 
-	hasShadow: true,
-	frame: false,
 	resizable: true,
 };

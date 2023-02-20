@@ -1,41 +1,47 @@
-import React from "react";
-import Frame from "./frame/Frame";
-import { Router } from "./router/Router";
-import { Configuration, ConfigurationService } from "../../main/services/configuration/configuration.service";
-import { store } from "../store";
-import { useInjection } from "inversify-react";
-import { WindowService } from "../../main/services/electron/window.service";
+import React, { useMemo } from "react";
+import { useAppDispatch, useAppSelector } from "../store";
+import { Box, Button, Paper, Stack, Typography } from "@mui/material";
+import { bindActionCreators } from "redux";
+import { increment } from "../store/module/counter/counter.action";
+import { incrementByRandom } from "../store/module/counter/counter.async.action";
+import { BrowserWindow } from "@electron/remote";
+import { windowOption } from "../../config/electron";
 
 export function Application() {
-	const services = {
-		configuration: useInjection(ConfigurationService),
-		window: useInjection(WindowService),
-	};
-	const checkHeight = async () => {
-		const {
-			routing: { routes, path },
-		} = store.getState();
-		const current = routes[path];
-		if (current?.autoResize.width || current?.autoResize.height) {
-			const config = await services.configuration.get();
-			const keys = Object.keys(config.frame.resize) as Array<keyof Configuration["frame"]["resize"]>;
-			const dim = keys.filter(k => config.frame.resize[k] && current.autoResize[k]);
-			const delta = await services.window.isUnderSized(dim);
-			if (dim.map(d => delta[d]).some(v => v > 0)) {
-				await services.window.resize(delta);
-			}
-		}
-	};
+	const counter = useAppSelector(s => s.counter.value);
 
-	React.useEffect(() => {
-		// setTimeout(checkUpdate, 1000);
-		setInterval(checkHeight, 250);
-	}, []);
+	const dispatch = useAppDispatch();
+
+	const actions = useMemo(() => bindActionCreators({ increment, incrementByRandom }, dispatch), [dispatch]);
+
+	const duplicate = async () => {
+		const win = new BrowserWindow(windowOption);
+
+		await win.loadURL("http://localhost:2003");
+
+		win.show();
+	};
 
 	return (
-		<Frame>
-			<Router />
-		</Frame>
+		<Box m={2}>
+			<Paper>
+				<Stack p={4} spacing={2} bgcolor={"background.default"}>
+					<Typography>Hello</Typography>
+					<Typography>Counter {counter}</Typography>
+					<Stack direction={"row"} spacing={2}>
+						<Button variant={"contained"} onClick={() => actions.increment(1)}>
+							Increment (+1)
+						</Button>
+						<Button variant={"contained"} onClick={() => actions.incrementByRandom()}>
+							Random Increment
+						</Button>
+						<Button variant={"contained"} onClick={duplicate}>
+							New Window
+						</Button>
+					</Stack>
+				</Stack>
+			</Paper>
+		</Box>
 	);
 }
 

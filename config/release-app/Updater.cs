@@ -12,7 +12,7 @@ public class UpdaterApi
             var api = new AppsClient { BaseUrl = "https://elyspio.fr/updater" };
             var bytes = File.ReadAllBytes(path);
             Console.WriteLine("Adding " + path);
-            await api.AddAsync("Elytools", version.ToString(), arch, bytes);
+            await api.AddAsync("Electron React TS Template", version.ToString(), arch, bytes);
             Console.WriteLine($"Added {path} in {(DateTime.Now - t).Seconds}s");
         }
 
