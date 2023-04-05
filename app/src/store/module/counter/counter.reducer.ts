@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { increment, replaceCounterState } from "./counter.action";
+import { increment } from "./counter.action";
 import { incrementByRandom } from "./counter.async.action";
 
 export interface CounterState {
@@ -22,12 +22,7 @@ const slice = createSlice({
 		addCase(incrementByRandom.fulfilled, (state, action) => {
 			state.value += action.payload;
 		});
-		addCase(replaceCounterState, (state, action) => {
-			(Object.keys(action.payload) as (keyof CounterState)[]).forEach(key => {
-				state[key] = action.payload[key];
-			});
-		});
 	},
 });
 
-export const { reducer } = slice;
+export const { reducer: counterReducer } = slice;

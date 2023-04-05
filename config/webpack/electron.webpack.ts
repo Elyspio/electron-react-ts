@@ -1,5 +1,6 @@
 import * as path from "path";
 import { Configuration } from "webpack";
+import ESLintWebpackPlugin from "eslint-webpack-plugin";
 
 const rootPath = path.resolve(__dirname, "..", "..");
 
@@ -29,6 +30,9 @@ const config: Configuration = {
 		path: path.resolve(rootPath, "app", "dist"),
 		filename: "[name].js",
 	},
+	plugins: [new ESLintWebpackPlugin({
+		fix: true,
+	})],
 };
 
 export default config;

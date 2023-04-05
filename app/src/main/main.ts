@@ -18,7 +18,8 @@ const createWindow = async () => {
 
 	if (isDev) {
 		// Open DevTools, see https://github.com/electron/electron/issues/12438 for why we wait for dom-ready
-		win.webContents.once("dom-ready", async () => {});
+		win.webContents.once("dom-ready", async () => {
+		});
 	}
 
 	remoteMain.enable(win.webContents);
@@ -32,7 +33,7 @@ const createWindow = async () => {
 				pathname: path.join(__dirname, "renderer", "index.html"),
 				protocol: "file:",
 				slashes: true,
-			})
+			}),
 		);
 	}
 

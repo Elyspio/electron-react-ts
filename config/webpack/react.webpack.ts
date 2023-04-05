@@ -9,10 +9,16 @@ interface Configuration extends WebpackConfiguration {
 	devServer?: WebpackDevServerConfiguration;
 }
 
+const srcPath = path.resolve(rootPath, "app", "src");
+
 const config: Configuration = {
 	resolve: {
 		extensions: [".tsx", ".ts", ".js"],
 		mainFields: ["main", "module", "browser"],
+		alias: {
+			"@store": path.resolve(srcPath, "store"),
+			"@services": path.resolve(srcPath, "main/services"),
+		},
 	},
 	entry: path.resolve(rootPath, "app/src/renderer", "index.tsx"),
 	target: "electron-renderer",
